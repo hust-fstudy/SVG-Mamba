@@ -52,7 +52,7 @@ def dvsgesture_params():
     parser.add_argument('--enc_neighbours', default=(16, 16, 16), type=tuple)
     parser.add_argument('--enc_radius', default=(1.25, 2.5, 10), type=tuple)
     parser.add_argument('--enc_way', default=('r', 'n', 'n'), type=tuple)
-    parser.add_argument('--pool_ratio', default=(0.25, 0.25, 0.25), type=tuple)
+    parser.add_argument('--pool_ratio', default=(0.5, 0.25, 0.25), type=tuple)
     # GNN mamba.
     parser.add_argument('--is_gnn_mamba', default=True, type=bool)
     parser.add_argument('--is_bidirectional', default=True, type=bool)

@@ -12,6 +12,7 @@ from config.dvsgesture_params import dvsgesture_params
 # from config.neurohar_params import neurohar_params
 # from config.ucf101_params import ucf101_params
 # from config.cifar10dvs_params import cifar10dvs_params
+# from config.daily_params import daily_params
 
 
 class DatasetParams:
@@ -32,3 +33,4 @@ class DatasetParams:
         # self.neurohar_params = neurohar_params()
         # self.ucf101_params = ucf101_params()
         # self.cifar10dvs_params = cifar10dvs_params()
+        # self.daily_params = daily_params()

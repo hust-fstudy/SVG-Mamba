@@ -80,6 +80,8 @@ class RecognitionMain:
                 self.args = self.DP.ucf101_params
             case 'CIFAR10DVS':
                 self.args = self.DP.cifar10dvs_params
+            case 'Daily':
+                self.args = self.DP.daily_params
             case _:
                 print(f"The {dataset_name} dataset does not exist!")
                 self.args = None

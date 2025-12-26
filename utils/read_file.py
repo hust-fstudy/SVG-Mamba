@@ -160,4 +160,86 @@ class ReadFile:
         p = np.squeeze(events['pol'])
         p = np.where(p == 0, -1, p.astype(int))
         return [x, y, t, p]
+
+    def daily_data_reader(self, filepath, max_events=1e6, start_event=0, x_mask=None):
+        """
+        :param filepath: Daily dataset file specified by 'filename'
+        :param max_events: 1e6
+        :param start_event: 0
+        :param x_mask: None
+        :return: All x, y, t, p in the file
+        """
+        f = open(filepath, 'rb')
+        # Skip header lines.
+        bof = f.tell()
+        line = f.readline().decode('utf-8').strip()
+        tok = '#!AER-DAT'
+        version = 0
+
+        while line[0] == '#':
+            if line.startswith(tok):
+                version = int(float(line[len(tok):].strip()))
+            bof = f.tell()
+            try:
+                line = f.readline().decode('utf-8').strip()
+            except UnicodeDecodeError:
+                break
+
+        match version:
+            case 0:
+                version = 1
+            case 1:
+                version = 1
+            case 2:
+                version = 2
+            case _:
+                print(f"Unknown AER-DAT file format version {version}")
+        # Version.
+        num_bytes_per_event = 6
+        match version:
+            case 1:
+                num_bytes_per_event = 6
+            case 2:
+                num_bytes_per_event = 8
+
+        f.seek(0, os.SEEK_END)
+        num_events = (f.tell() - bof - num_bytes_per_event * start_event) // num_bytes_per_event
+        if num_events > max_events:
+            print(f"clipping to {max_events} events although there are {num_events} events in file")
+            num_events = max_events
+
+        # Read data.
+        f.seek(bof + num_bytes_per_event * start_event, os.SEEK_SET)
+        dtype_event = np.dtype([
+            ('addr', '>u4'),
+            ('ts', '>u4')
+        ])
+        all_events = np.fromfile(f, dtype=dtype_event, count=num_events)
+        all_addr = all_events['addr'].astype(np.uint32)  # addr are each 2 bytes (uint16) separated by 4 byte timestamps
+        all_ts = all_events['ts'].astype(np.uint32)  # ts are 4 bytes (uint32) skipping 2 bytes after each
+        f.close()
+
+        retinaSizeX = 128
+        x_shift = None
+        y_shift = None
+        y_mask = None
+        pol_mask = None
+        if x_mask is None:
+            x_mask = int('fE', 16)
+            y_mask = int('7f00', 16)
+            x_shift = 1
+            y_shift = 8
+            pol_mask = 1
+
+        addr = abs(all_addr)
+        x = retinaSizeX - 1 - ((addr & x_mask) >> x_shift)  # x addresses
+        y = ((addr & y_mask) >> y_shift)  # y addresses
+        pol = 1 - 2 * (addr & pol_mask)  # 1 for ON, -1 for OFF
+
+        x = np.array(x)
+        y = np.array(y)
+        t = np.array(all_ts)
+        p = np.array(pol)
+        p = np.where(p == 0, -1, p.astype(int))
+        return [x, y, t, p]
     
